@@ -25,7 +25,7 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
   ## some people insist on using vectors rather than formulas
   ## so I suppose we should be nice to them
   if (!inherits(formula, "formula")){
-      if (NROW(formula)!=length(byfactor))
+      if (NROW(formula)!=NROW(byfactors))
           stop("'formula' is the wrong length")
       if (!(is.data.frame(formula) ||
             is.matrix(formula) ||
@@ -35,7 +35,7 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
   }
 
   hasdeff<- is.character(deff) || deff
-  
+
   ## all combinations that actually occur in this design
   byfactor<-do.call("interaction", byfactors)
   dropped<- weights(design,"sampling")==0
@@ -50,12 +50,12 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
   uniquelevels<-sort(unique(byfactor[!dropped]))
   uniques <- match(uniquelevels, byfactor)
 
-  
+
   if(missing(vartype)) vartype<-"se"
   vartype<-match.arg(vartype,several.ok=TRUE)
   nvartype<-which(eval(formals(sys.function())$vartype) %in% vartype)
   if(any(is.na(nvartype))) stop("invalid vartype")
-  
+
   if (keep.var){
       unwrap <-function(x){
         rval<-c(coef(x))
@@ -105,7 +105,7 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
           covmat.mat[j+(1:ni),j+(1:ni)]<-covmats[[i]]
           j<-j+ni
         }
-      }      
+      }
     } else {
       unwrap2 <- function(x){
           if(!is.null(attr(x, "deff")))
@@ -130,7 +130,7 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
   nr<-NCOL(rval)
   nstats<-nr/(1+ keep.var*(length(vartype)+ ("ci" %in% vartype)) + hasdeff)
 
-              
+
   if (nr>1)
     rval<-cbind(byfactors[uniques,,drop=FALSE], rval)
   else
@@ -141,7 +141,7 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
     if (x){
       i<-matrix(1:(ns*reps),ncol=reps)
       rval<-t(i[index,])
-      
+
     } else{
       i<-matrix(1:(ns*reps), ncol=reps, nrow=ns, byrow=TRUE)
       rval<- i[index,]
@@ -173,7 +173,7 @@ svyby.default<-function(formula, by, design, FUN,..., deff=FALSE, keep.var=TRUE,
         covmat.mat<-tmp
       }
   }
-                  
+
   attr(rval,"svyby")<-list(margins=1:NCOL(byfactors),nstats=nstats,
                            vars=if(keep.var) length(vartype) else 0,
                            deffs=deff,
@@ -206,7 +206,7 @@ SE.svyby <-function(object,...){
     else if (pos<-match("cvpct",vartype,0))
          object[,max(aa$margins)+aa$nstats*pos+(1:aa$nstats)]*coef(object)/100
     else stop("This can't happen")
-           
+
 }
 
 coef.svyby<-function (object, ...)
@@ -251,9 +251,9 @@ confint.svyquantile<-function(object,parm=NULL,level=NULL,...){
   colnames(ci)<-dimnames(object$CIs)[[1]]
   rownames(ci)<-outer(dimnames(object$CIs)[[2]],
                       dimnames(object$CIs)[[3]],paste,sep="_")
-  if (is.null(parm)) 
+  if (is.null(parm))
     ci
-  else 
+  else
     ci[parm,,drop=FALSE]
 }
-	
+
