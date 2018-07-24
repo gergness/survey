@@ -364,6 +364,8 @@ multistage<-function(x, clusters,  stratas, nPSUs, fpcs,
 }
 
 
+numeric_if_factor <- function(x) if (is.factor(x)) as.numeric(x) else x
+
 ## fpc not given are zero: full sampling.
 as.fpc<-function(df,strata,ids,pps=FALSE){
 
@@ -371,7 +373,7 @@ as.fpc<-function(df,strata,ids,pps=FALSE){
   
   sampsize<-matrix(ncol=ncol(ids),nrow=nrow(ids))
   for(i in 1:ncol(ids))
-    split(sampsize[,i],strata[,i])<-lapply(split(ids[,i],strata[,i]),count)
+    split(sampsize[,i],strata[,i])<-lapply(split(numeric_if_factor(ids[,i]),strata[,i]),count)
   
   if (is.null(df)){
     ## No fpc
